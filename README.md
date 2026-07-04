@@ -1,5 +1,9 @@
 # ✦ Spark — AI activity ideas that learn your taste
 
+> **Two apps in this repo:** the original web app (this directory, Next.js +
+> Claude API) and a local-first iOS app (`ios/`, SwiftUI + on-device Apple
+> Intelligence model, all data stored on the phone). See [`ios/README.md`](ios/README.md).
+
 Tell Spark your criteria ("I have 30 minutes, low energy, at home"), and it
 deals you creative activity ideas one card at a time. Swipe right to keep an
 idea, left to reject it — like a dating app, but for things to do.

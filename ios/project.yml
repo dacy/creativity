@@ -1,0 +1,26 @@
+# XcodeGen spec — run `xcodegen generate` in this directory to produce Spark.xcodeproj
+# (brew install xcodegen). Or create a blank SwiftUI app in Xcode and drag the
+# Spark/ folder in — see README.md.
+name: Spark
+options:
+  bundleIdPrefix: com.example.spark
+  deploymentTarget:
+    iOS: "26.0"
+targets:
+  Spark:
+    type: application
+    platform: iOS
+    sources:
+      - Spark
+    info:
+      path: Spark/Info.plist
+      properties:
+        CFBundleDisplayName: Spark
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
