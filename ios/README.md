@@ -77,6 +77,33 @@ Export                   InsightExporter — markdown dossier / JSON, ShareLink
 | AI prompts | Processed on-device by Apple Intelligence | Never |
 | Exports | Generated on demand | Only via the user-initiated share sheet |
 
+## Troubleshooting
+
+**`SensitiveContentAnalysisML Code=15 … instruct_300m.safety: The data
+couldn't be read because it is missing"` / `keyNotFound: 'thoughtContents'`**
+
+These come from inside Apple's FoundationModels stack, not the app. They mean
+the on-device model assets aren't actually present or are version-mismatched
+on the machine running the app, even though the framework reported the model
+as available. Fixes, in order of likelihood:
+
+1. **Simulator:** Apple Intelligence in the simulator uses the *host Mac's*
+   models. You need an Apple Silicon Mac running macOS 26 with Apple
+   Intelligence turned on (System Settings → Apple Intelligence & Siri) and
+   its model download fully finished. Intel Macs and macOS 15 hosts will fail
+   exactly like this.
+2. **Device:** Settings → Apple Intelligence & Siri → make sure it's enabled
+   and the model download has completed (needs Wi-Fi, decent battery, and
+   free storage; it can take a while after first enabling). Reboot afterwards.
+3. **Version skew:** update to the latest iOS 26.x / macOS 26.x point release
+   and matching Xcode — the `thoughtContents` decoding failure is the
+   framework disagreeing with older on-disk model assets; asset re-download
+   after an OS update clears it.
+
+The app now also self-heals at runtime: if the on-device model throws during
+generation, Spark switches to sample ideas with a banner instead of failing,
+so you can keep testing the UX while the model assets sort themselves out.
+
 ## Status / known limitations
 
 - Written without access to Xcode (authored in a Linux environment), so it

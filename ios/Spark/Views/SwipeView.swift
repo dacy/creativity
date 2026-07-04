@@ -24,8 +24,8 @@ struct SwipeView: View {
 
                     criteriaForm
 
-                    if viewModel.usingMock {
-                        infoBanner("Apple Intelligence isn't available on this device, so Spark is showing sample ideas with a simple category-based profile.")
+                    if let notice = viewModel.mockNotice {
+                        infoBanner(notice)
                     }
                     if viewModel.profileJustUpdated {
                         infoBanner("✦ Spark just updated its read on your taste — see the Your taste tab.")

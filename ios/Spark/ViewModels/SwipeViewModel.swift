@@ -10,17 +10,21 @@ final class SwipeViewModel {
     var activeCriteria: String?
     var isLoading = false
     var errorMessage: String?
-    var usingMock = false
+    /// Non-nil when the app is serving sample ideas instead of on-device AI,
+    /// with a human-readable reason shown as a banner.
+    var mockNotice: String?
     var profileJustUpdated = false
 
     /// Re-infer the taste profile every N decisive swipes.
     private let profileUpdateInterval = 4
     private let batchSize = 3
-    private let generator = GeneratorFactory.make()
+    private var generator = GeneratorFactory.make()
     private var isFetching = false
 
     init() {
-        usingMock = !(generator is FoundationModelGenerator)
+        if !(generator is FoundationModelGenerator) {
+            mockNotice = "Apple Intelligence isn't available on this device, so Spark is showing sample ideas with a simple category-based profile."
+        }
     }
 
     // MARK: - Session
@@ -67,32 +71,49 @@ final class SwipeViewModel {
             isLoading = false
         }
 
-        do {
-            let generated = try await generator.generateIdeas(context: GenerationContext(
-                criteria: criteria,
-                profile: fetchOrCreateProfile(context: context).content,
-                likedTitles: titles(status: .liked, limit: 10, context: context),
-                dislikedTitles: titles(status: .disliked, limit: 10, context: context),
-                seenTitles: allTitles(limit: 60, context: context),
-                count: batchSize
-            ))
+        let generationContext = GenerationContext(
+            criteria: criteria,
+            profile: fetchOrCreateProfile(context: context).content,
+            likedTitles: titles(status: .liked, limit: 10, context: context),
+            dislikedTitles: titles(status: .disliked, limit: 10, context: context),
+            seenTitles: allTitles(limit: 60, context: context),
+            count: batchSize
+        )
 
-            for item in generated {
-                let idea = Idea(
-                    title: item.title,
-                    details: item.details,
-                    category: item.category,
-                    durationMinutes: item.durationMinutes,
-                    criteria: criteria,
-                    source: generator.sourceLabel
-                )
-                context.insert(idea)
-                queue.append(idea)
-            }
-            try context.save()
+        do {
+            let generated = try await generator.generateIdeas(context: generationContext)
+            insert(generated, criteria: criteria, context: context)
         } catch {
-            errorMessage = "Couldn't generate ideas: \(error.localizedDescription)"
+            // The on-device model can fail at request time even when it
+            // reported itself available (e.g. model assets still downloading,
+            // OS/asset version skew). Fall back to sample ideas instead of
+            // stranding the user on a raw framework error.
+            guard !(generator is MockIdeaGenerator) else {
+                errorMessage = "Couldn't generate ideas: \(error.localizedDescription)"
+                return
+            }
+            generator = MockIdeaGenerator()
+            mockNotice = "The on-device model hit an error, so Spark switched to sample ideas. Check that Apple Intelligence is enabled and its model download has finished, then relaunch."
+            if let generated = try? await generator.generateIdeas(context: generationContext) {
+                insert(generated, criteria: criteria, context: context)
+            }
         }
+    }
+
+    private func insert(_ generated: [GeneratedIdea], criteria: String, context: ModelContext) {
+        for item in generated {
+            let idea = Idea(
+                title: item.title,
+                details: item.details,
+                category: item.category,
+                durationMinutes: item.durationMinutes,
+                criteria: criteria,
+                source: generator.sourceLabel
+            )
+            context.insert(idea)
+            queue.append(idea)
+        }
+        try? context.save()
     }
 
     private func updateProfile(profile: TasteProfile, context: ModelContext) async {
