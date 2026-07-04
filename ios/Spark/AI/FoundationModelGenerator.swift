@@ -38,7 +38,27 @@ struct FoundationModelGenerator: IdeaGenerating {
     var sourceLabel: String { "on-device" }
 
     static var isAvailable: Bool {
-        SystemLanguageModel.default.availability == .available
+        if case .available = SystemLanguageModel.default.availability { return true }
+        return false
+    }
+
+    /// Human-readable explanation of why the on-device model can't be used,
+    /// or nil when it's available. Surfaced to the user as a banner so it's
+    /// clear which gate is being hit (ineligible hardware vs. Apple
+    /// Intelligence off vs. model still downloading).
+    static var unavailableReason: String? {
+        switch SystemLanguageModel.default.availability {
+        case .available:
+            return nil
+        case .unavailable(.deviceNotEligible):
+            return "This device isn't eligible for Apple Intelligence (needs an iPhone 15 Pro or newer, or an M-series Mac for the simulator). Showing sample ideas instead."
+        case .unavailable(.appleIntelligenceNotEnabled):
+            return "Apple Intelligence is turned off. Enable it in Settings → Apple Intelligence & Siri to get on-device ideas. Showing sample ideas for now."
+        case .unavailable(.modelNotReady):
+            return "The on-device model is still downloading (this happens after enabling Apple Intelligence). Showing sample ideas — try again once it finishes."
+        case .unavailable(let other):
+            return "The on-device model is unavailable (\(other)). Showing sample ideas instead."
+        }
     }
 
     func generateIdeas(context: GenerationContext) async throws -> [GeneratedIdea] {

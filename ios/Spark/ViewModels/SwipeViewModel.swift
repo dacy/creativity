@@ -23,7 +23,10 @@ final class SwipeViewModel {
 
     init() {
         if !(generator is FoundationModelGenerator) {
-            mockNotice = "Apple Intelligence isn't available on this device, so Spark is showing sample ideas with a simple category-based profile."
+            // Surface the specific reason (ineligible / disabled / downloading)
+            // rather than a generic "unavailable".
+            mockNotice = FoundationModelGenerator.unavailableReason
+                ?? "Apple Intelligence isn't available on this device, so Spark is showing sample ideas with a simple category-based profile."
         }
     }
 
