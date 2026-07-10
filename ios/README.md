@@ -112,3 +112,7 @@ so you can keep testing the UX while the model assets sort themselves out.
 - Single taste profile (no multi-user)
 - No "develop this idea into a plan" flow yet — natural next step, and pairs
   well with the export feature
+- On phones without Apple Intelligence the app currently falls back to canned
+  sample ideas. Planned: a real bundled/downloaded on-device LLM (llama.cpp +
+  a small Qwen model) so every device gets intelligent generation — see
+  [`LOCAL_MODEL_PLAN.md`](LOCAL_MODEL_PLAN.md).
