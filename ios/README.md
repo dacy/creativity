@@ -114,5 +114,7 @@ so you can keep testing the UX while the model assets sort themselves out.
   well with the export feature
 - On phones without Apple Intelligence the app currently falls back to canned
   sample ideas. Planned: a real bundled/downloaded on-device LLM (llama.cpp +
-  a small Qwen model) so every device gets intelligent generation — see
+  a small permissively-licensed model — Phi-3.5-mini/MIT or Qwen2.5-1.5B/
+  Apache-2.0) so every device gets intelligent generation. Includes a
+  commercialization & licensing analysis — see
   [`LOCAL_MODEL_PLAN.md`](LOCAL_MODEL_PLAN.md).
